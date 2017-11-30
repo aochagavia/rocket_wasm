@@ -1,4 +1,5 @@
-use rand;
+use pcg_rand::Pcg32Basic;
+use rand::SeedableRng;
 
 use geometry::{Position, Size};
 use models::World;
@@ -14,7 +15,7 @@ pub struct GameState {
 impl GameState {
     /// Returns a new `GameState` containing a `World` of the given `Size`
     pub fn new(size: Size) -> GameState {
-        let mut rng = rand::thread_rng();
+        let mut rng = Pcg32Basic::from_seed([42, 42]);
         GameState {
             world: World::new(&mut rng, size),
             score: 0
@@ -23,7 +24,7 @@ impl GameState {
 
     /// Reset our game-state
     pub fn reset(&mut self) {
-        let mut rng = rand::thread_rng();
+        let mut rng = Pcg32Basic::from_seed([42, 42]);
 
         // Reset player position
         *self.world.player.x_mut() = self.world.size.random_x(&mut rng);

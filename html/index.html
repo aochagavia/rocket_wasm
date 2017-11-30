@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+  </head>
+
+  <body>
+    <h2>Rocket MVP</h2>
+    <p>
+      Update the state by 0.1 seconds by clicking the button below.
+    </p>
+    <button id="button">Click me :)</button>
+    <p>Last state: <span id="number">none</span></p>
+
+<!-- bundle.js is fully stolen from hellorust.org -->
+<script src="bundle.js"></script>
+<script>
+  window.Module = {};
+
+  fetchAndInstantiate("program.wasm", {})
+    .then(mod => {
+      Module.alloc = mod.exports.alloc;
+      Module.dealloc = mod.exports.dealloc;
+      Module.dealloc_str = mod.exports.dealloc_str;
+      Module.get_rand = mod.exports.get_rand;
+      Module.memory  = mod.exports.memory;
+
+      let button = document.getElementById('button');
+      let number = document.getElementById('number');
+
+      button.addEventListener("click", function(e) {
+        let outptr = Module.update(0.2);
+        number.innerText = copyCStr(Module, outptr);
+        Module.dealloc(outptr);
+      });
+    });
+</script>
+  </body>
+</html>

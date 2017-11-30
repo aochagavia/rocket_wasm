@@ -1,34 +1,22 @@
 use std::env;
-use std::fs::{copy, create_dir_all, read_dir};
-use std::path::{Path, PathBuf};
-use std::io;
+use std::fs;
+use std::path::Path;
+use std::process::Command;
 
 fn main() {
-    let res_dir_source = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join("resources/");
-    let res_dir_target = Path::new(&env::var("OUT_DIR").unwrap()).join("../../../resources/");
-
-    //copies all resource files to "target/NAME/resources". Prints out any errors if failed.
-    if let Err(io_error) = add_resources(&res_dir_source, &res_dir_target) {
-        println!("OS Error: {}", io_error);
+    // Only run when targeting wasm
+    if env::var("CARGO_CFG_target_arch").unwrap() != "wasm32" {
+        return;
     }
-}
 
-///Recursively copy all files in dir given by source_path to dir given by target path
-///WARNING! Overwrites files with same name
-fn add_resources(source_path: &PathBuf, target_path: &PathBuf) -> io::Result<()> {
-    match read_dir(source_path) {
-        Ok(entry_iter) => {
-            create_dir_all(target_path)?;
-            for entry in entry_iter {
-                let entry = entry?;
-                let source_path = entry.path();
-                let target_path = target_path.join(entry.file_name());
-                add_resources(&source_path, &target_path)?;
-            }
-        }
-        Err(_) => {
-            copy(&source_path, &target_path)?;
-        }
-    }
-    Ok(())
+    // Copy the resulting wasm to the html folder
+    let html_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join("html");
+    let target_wasm = Path::new(&env::var("OUT_DIR").unwrap()).join("../../../rocket.wasm");
+    let copied_wasm = html_path.join("rocket.wasm");
+    fs::copy(target_wasm, &copied_wasm).expect("Failed to copy");
+
+    // Run wasm-gc
+    Command::new("wasm-gc").arg(copied_wasm).arg(html_path.join("program.wasm"))
+        .spawn().expect("wasm_gc failed to start")
+        .wait().expect("wasm_gc crashed");
 }
