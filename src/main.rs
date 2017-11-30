@@ -2,34 +2,35 @@ extern crate itertools_num;
 #[macro_use]
 extern crate lazy_static;
 extern crate rand;
+extern crate pcg_rand;
 
 mod controllers;
 mod drawing;
 mod game_state;
 mod geometry;
 mod models;
-mod rng;
 mod util;
 
 use std::sync::Mutex;
+use pcg_rand::Pcg32Basic;
+use rand::SeedableRng;
 
 use self::game_state::GameState;
 use self::geometry::Size;
 use self::controllers::{InputController, TimeController, CollisionsController};
-use self::rng::DummyRng;
 
 lazy_static! {
     static ref DATA: Mutex<GameData> = Mutex::new(GameData {
         state: GameState::new(Size::new(1024.0, 600.0)),
         input_controller: InputController::new(),
-        time_controller: TimeController::new(DummyRng::default())
+        time_controller: TimeController::new(Pcg32Basic::from_seed([42, 42]))
     });
 }
 
 struct GameData {
     state: GameState,
     input_controller: InputController,
-    time_controller: TimeController<self::rng::DummyRng>
+    time_controller: TimeController<Pcg32Basic>
 }
 
 pub fn loop_(time: f64) -> String {
