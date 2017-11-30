@@ -1,5 +1,5 @@
 use std::f64;
-use rand::{self, ThreadRng};
+use rand::Rng;
 
 use super::Actions;
 use game_state::GameState;
@@ -28,19 +28,19 @@ const ROTATE_SPEED: f64 = 2.0 * f64::consts::PI;
 const PLAYER_GRACE_AREA: f64 = 200.0;
 
 /// Timers to handle creation of bullets, enemies and particles
-pub struct TimeController {
+pub struct TimeController<T: Rng> {
     /// A random number generator
-    rng: ThreadRng,
+    rng: T,
     current_time: f64,
     last_tail_particle: f64,
     last_shoot: f64,
     last_spawned_enemy: f64
 }
 
-impl TimeController {
-    pub fn new() -> TimeController {
+impl<T: Rng> TimeController<T> {
+    pub fn new(rng: T) -> TimeController<T> {
         TimeController {
-            rng: rand::thread_rng(),
+            rng,
             current_time: 0.0,
             last_tail_particle: 0.0,
             last_shoot: 0.0,

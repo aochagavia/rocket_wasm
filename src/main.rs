@@ -1,12 +1,6 @@
-#![deny(missing_docs)]
-#![cfg_attr(feature="clippy", feature(plugin))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
-
-//! A 2D toy game written in Rust, using the Piston library.
-
-extern crate piston_window;
 extern crate itertools_num;
-extern crate opengl_graphics;
+#[macro_use]
+extern crate lazy_static;
 extern crate rand;
 
 mod controllers;
@@ -14,70 +8,50 @@ mod drawing;
 mod game_state;
 mod geometry;
 mod models;
-mod resources;
+mod rng;
 mod util;
-mod view;
 
-use piston_window::{Button, EventLoop, Input, Motion, OpenGL, PistonWindow, WindowSettings};
-use opengl_graphics::GlGraphics;
+use std::sync::Mutex;
 
-use controllers::{CollisionsController, InputController, TimeController};
-use game_state::GameState;
-use geometry::Size;
-use resources::Resources;
+use self::game_state::GameState;
+use self::geometry::Size;
+use self::controllers::{InputController, TimeController, CollisionsController};
+use self::rng::DummyRng;
 
-fn main() {
-    let opengl = OpenGL::V3_2;
-
-    let game_size = Size::new(1024.0, 600.0);
-
-    let mut window: PistonWindow = WindowSettings::new(
-        "Rocket!", [game_size.width as u32, game_size.height as u32])
-        .opengl(opengl).samples(8).exit_on_esc(true).build().unwrap();
-
-    window.set_ups(60);
-    window.set_max_fps(60);
-
-    let mut gl = GlGraphics::new(opengl);
-    let mut resources = Resources::new();
-    let mut input_controller = InputController::new();
-    let mut time_controller = TimeController::new();
-    let mut state = GameState::new(game_size);
-
-    // The game loop
-    while let Some(e) = window.next() {
-        // Event handling
-        match e {
-            Input::Press(Button::Keyboard(key)) => {
-                input_controller.key_press(key);
-            }
-
-            Input::Release(Button::Keyboard(key)) => {
-                input_controller.key_release(key);
-            }
-
-            Input::Press(Button::Controller(button)) => {
-                input_controller.button_press(button);
-            }
-
-            Input::Release(Button::Controller(button)) => {
-                input_controller.button_release(button);
-            }
-
-            Input::Move(Motion::ControllerAxis(axis)) => {
-                input_controller.handle_axis(axis);
-            }
-
-            Input::Update(args) => {
-                time_controller.update_seconds(args.dt, input_controller.actions(), &mut state);
-                CollisionsController::handle_collisions(&mut state);
-            }
-
-            Input::Render(args) => {
-                gl.draw(args.viewport(), |c, g| view::render_game(c, g, &mut resources, &state));
-            }
-
-            _ => {}
-        }
-    }
+lazy_static! {
+    static ref DATA: Mutex<GameData> = Mutex::new(GameData {
+        state: GameState::new(Size::new(1024.0, 600.0)),
+        input_controller: InputController::new(),
+        time_controller: TimeController::new(DummyRng::default())
+    });
 }
+
+struct GameData {
+    state: GameState,
+    input_controller: InputController,
+    time_controller: TimeController<self::rng::DummyRng>
+}
+
+pub fn loop_(time: f64) -> String {
+    let data = DATA.lock().unwrap();
+    format!("Hello world")
+}
+
+// Comment this out, as it is definitely Piston-dependent
+//mod view;
+
+pub fn main() {
+    // Things we need to know from the browser:
+    // * Update frame
+
+    // Things to keep in static memory
+    // * Game state
+    // * InputController
+    // * TimeController
+}
+
+// MVP
+// * No display
+// * No input
+// * 5 updates per second
+// * For each update, log some stats to the console
