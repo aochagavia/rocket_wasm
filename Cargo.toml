@@ -1,0 +1,18 @@
+[package]
+name = "rocket"
+version = "1.0.0"
+authors = ["Adolfo Ochagavía <aochagavia92@gmail.com>"]
+build = "build.rs"
+
+[dependencies]
+clippy = { version = "0.0.118", optional = true }
+itertools-num = "0.1.1"
+piston_window = "0.64.0"
+piston2d-opengl_graphics = "0.42.1"
+rand = "0.3.14"
+
+[dependencies.rocket-lib]
+path = "rocket-lib"
+
+[features]
+default = []
