@@ -17,12 +17,29 @@
 <script>
   window.Module = {};
 
-  fetchAndInstantiate("program.wasm", {})
+  fetch('program.wasm').then(response =>
+    response.arrayBuffer()
+    ).then(bytes =>
+    WebAssembly.compile(bytes)
+    ).then(function(mod) {
+    var imports = WebAssembly.Module.imports(mod);
+    imports.forEach(i => console.log(i));
+    });
+
+  let imports = {
+    env: {
+        Math_atan: Math.atan,
+        sin: Math.sin,
+        cos: Math.cos
+    }
+  };
+
+  fetchAndInstantiate("program.wasm", imports)
     .then(mod => {
       Module.alloc = mod.exports.alloc;
       Module.dealloc = mod.exports.dealloc;
       Module.dealloc_str = mod.exports.dealloc_str;
-      Module.get_rand = mod.exports.get_rand;
+      Module.update = mod.exports.update;
       Module.memory  = mod.exports.memory;
 
       let button = document.getElementById('button');

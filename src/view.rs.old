@@ -4,11 +4,20 @@ use piston_window::ellipse::Ellipse;
 use piston_window::math::Matrix2d;
 use piston_window::types::Color;
 
-use drawing::color;
 use game_state::GameState;
 use geometry::{Advance, Collide, Position};
 use models::{Bullet, Enemy, Particle, Player, World, PLAYER_POLYGON};
 use resources::Resources;
+
+// Colors
+mod color {
+    pub const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+    pub const BLUE: [f32; 4] = [0.0, 0.0, 1.0, 1.0];
+    pub const ORANGE: [f32; 4] = [1.0, 0.5, 0.0, 1.0];
+    pub const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
+    pub const VIOLET: [f32; 4] = [0.6, 0.0, 1.0, 1.0];
+    pub const YELLOW: [f32; 4] = [1.0, 1.0, 0.0, 1.0];
+}
 
 /// Renders the game to the screen
 pub fn render_game(c: Context, g: &mut GlGraphics, res: &mut Resources, state: &GameState) {

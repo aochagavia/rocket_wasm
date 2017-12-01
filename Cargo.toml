@@ -5,7 +5,7 @@ authors = ["Adolfo Ochagavía <aochagavia92@gmail.com>"]
 build = "build.rs"
 
 [dependencies]
-#clippy = { version = "0.0.118", optional = true }
+clippy = { version = "0.0.118", optional = true }
 itertools-num = "0.1.1"
 lazy_static = "1.0"
 rand = "0.3.18"

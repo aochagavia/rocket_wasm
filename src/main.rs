@@ -5,7 +5,6 @@ extern crate rand;
 extern crate pcg_rand;
 
 mod controllers;
-mod drawing;
 mod game_state;
 mod geometry;
 mod models;
@@ -15,6 +14,7 @@ use std::ffi::CString;
 use std::mem;
 use std::os::raw::{c_double, c_char, c_void};
 use std::sync::Mutex;
+
 use pcg_rand::Pcg32Basic;
 use rand::SeedableRng;
 
@@ -51,19 +51,7 @@ pub fn _update(time: f64) -> String {
     format!("Player: {}, {}\nEnemies: {}", player_pos.x, player_pos.y, data.state.world.enemies.len())
 }
 
-// Comment this out, as it is definitely Piston-dependent
-//mod view;
-
-pub fn main() {
-    // Things we need to know from the browser:
-    // * Update frame
-}
-
-// MVP
-// * No display
-// * No input
-// * 5 updates per second
-// * For each update, log some stats to the console
+pub fn main() {}
 
 // The usual boilerplate
 #[no_mangle]
