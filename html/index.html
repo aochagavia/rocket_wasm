@@ -22,11 +22,38 @@
   }
   env.draw_player = (x, y, angle) => {
     ctx.fillStyle = "red";
+    //ctx.translate(x, y);
+    //ctx.rotate(angle);
+    // Paths don't seem to work...
+    /*
+    ctx.beginPath();
+    ctx.lineTo(100, 75);
+    ctx.lineTo(100, 25);
+    ctx.fill();
+    ctx.closePath(); */
     ctx.fillRect(x, y, 20, 20);
+    //ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
   env.draw_enemy = (x, y) => {
     ctx.fillStyle = "yellow";
-    ctx.fillRect(x, y, 20, 20);
+    ctx.fillRect(x - 10, y - 10, 20, 20);
+  }
+  env.draw_bullet = (x, y) => {
+    ctx.fillStyle = "blue";
+    ctx.fillRect(x, y, 10, 10);
+  }
+  env.draw_particle = (x, y, radius) => {
+    let r = 2 * radius;
+    ctx.fillStyle = "purple"
+    ctx.fillRect(x - r, y - r, 2 * r, 2 * r);
+    // Something goes wrong here...
+    /*
+    ctx.beginPath();
+    ctx.arc(x, y, 2 * r, 0, 2 * Math.PI);
+    ctx.fillStyle = 'purple';
+    ctx.fill();
+    ctx.closePath();
+    */
   }
 
   // Wasm related stuff
@@ -53,12 +80,35 @@
       Module.dealloc = mod.exports.dealloc;
       Module.dealloc_str = mod.exports.dealloc_str;
       Module.update = mod.exports.update;
+      Module.toggle_shoot = mod.exports.toggle_shoot;
+      Module.toggle_boost = mod.exports.toggle_boost;
+      Module.toggle_turn_left = mod.exports.toggle_turn_left;
+      Module.toggle_turn_right = mod.exports.toggle_turn_right;
       Module.draw = mod.exports.draw;
       Module.memory  = mod.exports.memory;
 
-      let button = document.getElementById('button');
-      let number = document.getElementById('number');
+      // Input processing
+      function processKey(key, b) {
+        switch (key) {
+          case "ArrowLeft":
+            Module.toggle_turn_left(b);
+            break;
+          case "ArrowRight":
+            Module.toggle_turn_right(b);
+            break;
+          case "ArrowUp":
+            Module.toggle_boost(b);
+            break;
+          case " ":
+            Module.toggle_shoot(b);
+            break;
+        }
+      }
+      document.addEventListener('keydown', e => processKey(e.key, true));
+      document.addEventListener('keyup', e => processKey(e.key, false));
 
+
+      // Game loop
       let start = null;
       let prevTimestamp = null;
       let drawAndUpdate = (timestamp) => {
@@ -71,7 +121,7 @@
           return;
         }
 
-        if (timestamp - start > 20000) {
+        if (timestamp - start > 5000) {
           return;
         }
 
