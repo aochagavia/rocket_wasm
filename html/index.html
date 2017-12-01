@@ -2,15 +2,68 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0px;
+        border: 0;
+        overflow: hidden; /*  Disable scrollbars */
+        display: block;  /* No floating content on sides */
+      }
+      </style>
   </head>
 
   <body>
-    <h2>Rocket</h2>
-    <canvas id="canvas" width="1024" height="600"></canvas>
+    <canvas id="canvas" style='position:absolute; left:0px; top:0px; width: 100%'></canvas>
 
-<!-- bundle.js is fully stolen from hellorust.org -->
-<script src="bundle.js"></script>
 <script>
+  // Resources
+  let res = {
+    player: document.createElement('canvas'),
+    enemy: document.createElement('canvas'),
+    bullet: document.createElement('canvas'),
+    particle: document.createElement('canvas')
+  };
+
+  // Particle
+  res.particle.width = 20;
+  res.particle.height = 20;
+  let pCtx = res.particle.getContext('2d');
+  pCtx.fillStyle = "darkviolet";
+  pCtx.beginPath();
+  pCtx.arc(10, 10, 10, 0, 2 * Math.PI);
+  pCtx.fill();
+
+  // Bullet
+  res.bullet.width = 6;
+  res.bullet.height = 6;
+  let bCtx = res.bullet.getContext('2d');
+  bCtx.fillStyle = "blue";
+  bCtx.beginPath();
+  bCtx.arc(3, 3, 3, 0, 2 * Math.PI);
+  bCtx.fill();
+
+  // Enemy
+  res.enemy.width = 20;
+  res.enemy.height = 20;
+  let eCtx = res.enemy.getContext('2d');
+  eCtx.fillStyle = "yellow";
+  eCtx.beginPath();
+  eCtx.arc(10, 10, 10, 0, 2 * Math.PI);
+  eCtx.fill();
+
+  // Player
+  res.player.width = 20;
+  res.player.height = 16;
+  let plCtx = res.player.getContext('2d');
+  plCtx.fillStyle = "red";
+  plCtx.beginPath();
+  plCtx.lineTo(20, 8);
+  plCtx.lineTo(0, 16);
+  plCtx.lineTo(0, 0);
+  plCtx.fill();
+
   // Canvas related stuff
   let canvas = document.getElementById('canvas');
   var ctx = canvas.getContext("2d");
@@ -21,126 +74,109 @@
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
   env.draw_player = (x, y, angle) => {
-    ctx.fillStyle = "red";
-    //ctx.translate(x, y);
-    //ctx.rotate(angle);
-    // Paths don't seem to work...
-    /*
-    ctx.beginPath();
-    ctx.lineTo(100, 75);
-    ctx.lineTo(100, 25);
-    ctx.fill();
-    ctx.closePath(); */
-    ctx.fillRect(x, y, 20, 20);
-    //ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.translate(0, -8);
+    ctx.drawImage(res.player, 0, 0);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    ctx.fillStyle = "black";
+    //ctx.fillRect(x - 17, y - 12, 4, 4);
   }
   env.draw_enemy = (x, y) => {
-    ctx.fillStyle = "yellow";
-    ctx.fillRect(x - 10, y - 10, 20, 20);
+    ctx.drawImage(res.enemy, x - 10, y - 10);
   }
   env.draw_bullet = (x, y) => {
-    ctx.fillStyle = "blue";
-    ctx.fillRect(x, y, 10, 10);
+    ctx.drawImage(res.bullet, x - 3, y - 3);
   }
   env.draw_particle = (x, y, radius) => {
-    let r = 2 * radius;
-    ctx.fillStyle = "purple"
-    ctx.fillRect(x - r, y - r, 2 * r, 2 * r);
-    // Something goes wrong here...
-    /*
-    ctx.beginPath();
-    ctx.arc(x, y, 2 * r, 0, 2 * Math.PI);
-    ctx.fillStyle = 'purple';
-    ctx.fill();
-    ctx.closePath();
-    */
+    ctx.drawImage(res.particle, x - radius, y - radius, 2 * radius, 2 * radius);
+  }
+  env.draw_score = (x) => {
+    ctx.fillStyle = "orange";
+    ctx.textBaseline = "top";
+    ctx.font = "20px sans-serif";
+    ctx.fillText('Score: ' + x, 10, 10)
   }
 
   // Wasm related stuff
-  window.Module = {};
-
-  // Terribly inefficient way of showing the dependencies
-  fetch('program.wasm').then(response =>
-    response.arrayBuffer()
-    ).then(bytes =>
-    WebAssembly.compile(bytes)
-    ).then(function(mod) {
-    var imports = WebAssembly.Module.imports(mod);
-    imports.forEach(i => console.log(i));
-    });
+  let module = {};
 
   // The real loading and running of our wasm starts here
   env.Math_atan = Math.atan;
   env.sin = Math.sin;
   env.cos = Math.cos;
 
-  fetchAndInstantiate("program.wasm", { env })
-    .then(mod => {
-      Module.alloc = mod.exports.alloc;
-      Module.dealloc = mod.exports.dealloc;
-      Module.dealloc_str = mod.exports.dealloc_str;
-      Module.update = mod.exports.update;
-      Module.toggle_shoot = mod.exports.toggle_shoot;
-      Module.toggle_boost = mod.exports.toggle_boost;
-      Module.toggle_turn_left = mod.exports.toggle_turn_left;
-      Module.toggle_turn_right = mod.exports.toggle_turn_right;
-      Module.draw = mod.exports.draw;
-      Module.memory  = mod.exports.memory;
+  fetch("program.wasm").then(response =>
+    response.arrayBuffer()
+  ).then(bytes =>
+    WebAssembly.instantiate(bytes, { env })
+  ).then(results => {
+    let mod = results.instance;
+    module.update = mod.exports.update;
+    module.toggle_shoot = mod.exports.toggle_shoot;
+    module.toggle_boost = mod.exports.toggle_boost;
+    module.toggle_turn_left = mod.exports.toggle_turn_left;
+    module.toggle_turn_right = mod.exports.toggle_turn_right;
+    module.resize = mod.exports.resize;
+    module.draw = mod.exports.draw;
 
-      // Input processing
-      function processKey(key, b) {
-        switch (key) {
-          case "ArrowLeft":
-            Module.toggle_turn_left(b);
-            break;
-          case "ArrowRight":
-            Module.toggle_turn_right(b);
-            break;
-          case "ArrowUp":
-            Module.toggle_boost(b);
-            break;
-          case " ":
-            Module.toggle_shoot(b);
-            break;
-        }
+    // Input processing
+    function processKey(key, b) {
+      switch (key) {
+        case "ArrowLeft":
+          module.toggle_turn_left(b);
+          break;
+        case "ArrowRight":
+          module.toggle_turn_right(b);
+          break;
+        case "ArrowUp":
+          module.toggle_boost(b);
+          break;
+        case " ":
+          module.toggle_shoot(b);
+          break;
       }
-      document.addEventListener('keydown', e => processKey(e.key, true));
-      document.addEventListener('keyup', e => processKey(e.key, false));
+    }
+    document.addEventListener('keydown', e => processKey(e.key, true));
+    document.addEventListener('keyup', e => processKey(e.key, false));
 
-
-      // Game loop
-      let start = null;
-      let prevTimestamp = null;
-      let drawAndUpdate = (timestamp) => {
-        if (!prevTimestamp) {
-          start = timestamp;
-          prevTimestamp = timestamp;
-
-          // Request next frame
-          requestAnimationFrame(drawAndUpdate);
-          return;
-        }
-
-        if (timestamp - start > 5000) {
-          return;
-        }
-
-        // Deal with time
-        let progress = (timestamp - prevTimestamp) / 1000;
-        prevTimestamp = timestamp;
-
-        // Update
-        Module.update(progress);
-
-        // Draw
-        Module.draw();
-
-        // Request next frame
-        requestAnimationFrame(drawAndUpdate);
-      };
-
-      drawAndUpdate();
+    // Resizing
+    function resize() {
+      // We make the canvas somewhat smaller so things are bigger
+      canvas.width = window.innerWidth * 0.8;
+      canvas.height = window.innerHeight * 0.8;
+      module.resize(canvas.width, canvas.height);
+    }
+    window.addEventListener('resize', () => {
+      resize();
     });
-</script>
+
+    // Game loop
+    let start = null;
+    let prevTimestamp = null;
+    let drawAndUpdate = (timestamp) => {
+      // Initialization
+      if (!prevTimestamp) {
+        start = timestamp;
+        prevTimestamp = timestamp;
+        requestAnimationFrame(drawAndUpdate);
+        return;
+      }
+
+      // Update and draw
+      let progress = (timestamp - prevTimestamp) / 1000;
+      module.update(progress);
+      module.draw();
+
+      // Some bookkeeping
+      prevTimestamp = timestamp;
+      requestAnimationFrame(drawAndUpdate);
+    };
+
+    resize();
+    drawAndUpdate();
+  });
+  </script>
   </body>
 </html>

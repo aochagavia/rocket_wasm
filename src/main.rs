@@ -23,11 +23,7 @@ use self::geometry::Size;
 use self::controllers::{Actions, TimeController, CollisionsController};
 
 lazy_static! {
-    static ref DATA: Mutex<GameData> = Mutex::new(GameData {
-        state: GameState::new(Size::new(1024.0, 600.0)),
-        actions: Actions::default(),
-        time_controller: TimeController::new(Pcg32Basic::from_seed([42, 42]))
-    });
+    static ref DATA: Mutex<GameData> = Mutex::new(new_game_data(1024.0, 600.0));
 }
 
 struct GameData {
@@ -36,13 +32,26 @@ struct GameData {
     time_controller: TimeController<Pcg32Basic>
 }
 
+fn new_game_data(width: f64, height: f64) -> GameData {
+    GameData {
+        state: GameState::new(Size::new(width, height)),
+        actions: Actions::default(),
+        time_controller: TimeController::new(Pcg32Basic::from_seed([42, 42]))
+    }
+}
+
 extern "C" {
     fn clear_screen();
     fn draw_player(_: c_double, _: c_double, _: c_double);
     fn draw_enemy(_: c_double, _: c_double);
     fn draw_bullet(_: c_double, _: c_double);
     fn draw_particle(_: c_double, _: c_double, _: c_double);
+    fn draw_score(_: c_double);
+}
 
+#[no_mangle]
+pub extern "C" fn resize(width: c_double, height: c_double) {
+    *DATA.lock().unwrap() = new_game_data(width, height);
 }
 
 #[no_mangle]
@@ -65,7 +74,10 @@ pub unsafe extern "C" fn draw() {
     }
 
     draw_player(world.player.x(), world.player.y(), world.player.direction());
+    draw_score(data.state.score as f64);
 }
+
+
 
 #[no_mangle]
 pub extern "C" fn update(time: c_double) {
@@ -77,6 +89,9 @@ pub fn _update(time: f64) {
     data.time_controller.update_seconds(time, &data.actions, &mut data.state);
     CollisionsController::handle_collisions(&mut data.state);
 }
+
+// FIXME: which type should we use for bool?
+// This one works, but it is not "the correct way to do it"
 
 #[no_mangle]
 pub extern "C" fn toggle_shoot(b: bool) {
@@ -103,26 +118,3 @@ pub extern "C" fn toggle_turn_right(b: bool) {
 }
 
 pub fn main() {}
-
-// The usual boilerplate
-#[no_mangle]
-pub extern "C" fn alloc(size: usize) -> *mut c_void {
-    let mut buf = Vec::with_capacity(size);
-    let ptr = buf.as_mut_ptr();
-    mem::forget(buf);
-    ptr as *mut c_void
-}
-
-#[no_mangle]
-pub extern "C" fn dealloc(ptr: *mut c_void, cap: usize) {
-    unsafe  {
-        let _buf = Vec::from_raw_parts(ptr, 0, cap);
-    }
-}
-
-#[no_mangle]
-pub extern "C" fn dealloc_str(ptr: *mut c_char) {
-    unsafe {
-        let _ = CString::from_raw(ptr);
-    }
-}
