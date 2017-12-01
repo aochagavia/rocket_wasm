@@ -30,7 +30,7 @@ script requires python 2.7 and `wasm-gc`.
 After setting things up, you should be able to compile the code using the commands below:
 
 ```
-cargo buld --release --target wasm32-unknown-unknown
+cargo build --release --target wasm32-unknown-unknown
 python post_build.py
 ```
 
