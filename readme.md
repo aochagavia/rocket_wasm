@@ -1,22 +1,17 @@
-Rocket
-======
+Rocket on WASM
+==============
 
-*Note: this project is no longer being maintained and pull requests will be ignored. Feel free to fork if you think something is missing.*
+An adapted version of the [Rocket](https://github.com/aochagavia/rocket) game, running on WASM!
 
-> Rocket is a toy game written in Rust, using the Piston library. The code is thoroughly 
-commented in order to help people to follow it easily.
+[Play now!](https://aochagavia.github.io/rocket_wasm)
 
-## Screenshots
+## Screenshot
 
-![Screenshot](screenshots/gameplay2.png)
-
-You can find more screenshots in the [screenshots] directory.
-
-[screenshots]: screenshots/
+![Screenshot](screenshots/gameplay1.png)
 
 ## How to play
 
-As you can see in the screenshots below, you are the red rocket and have to save the world from 
+As you can see in the screenshot, you are the red rocket and have to save the world from
 the yellow invaders. To do so, you can use the following controls:
 
 Keyboard                | Action
@@ -26,18 +21,18 @@ Keyboard                | Action
 <kbd>&rightarrow;</kbd> | Rotate right
 <kbd>Space</kbd>        | Shoot
 
-### Running it with Cargo
+### Compiling and running
 
-As always, it is a real pleasure to work with Cargo. You only need the following:
+Follow the steps on the [hellorust website](https://www.hellorust.com/setup/wasm-target/)
+in order to set up everything. Besides the `wasm32-unknown-unknown` target, the `post_build.py`
+script requires python 2.7 and `wasm-gc`.
+
+After setting things up, you should be able to compile the code using the commands below:
 
 ```
-cargo run --release
+cargo buld --release --target wasm32-unknown-unknown
+python post_build.py
 ```
 
-## Why?
-
-After having implemented some toy games in C++ using SDL and SFML, I thought it would be a 
-good idea to try the same in Rust. Additionally, I had written a similar game in Haskell and 
-wanted to port it to see the similarities and differences between Haskell and Rust. Another 
-reason to program this game was to have an easy to follow Rust project that could be useful 
-for people learning the language.
+The generated wasm will be copied to the `html` directory and `wasm-gc`ed. Try opening
+`index.html` on your browser to check whether it works.
