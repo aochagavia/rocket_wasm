@@ -1,5 +1,4 @@
 target
 .vscode
 .idea
-
-html/*.wasm
+html/rocket.wasm

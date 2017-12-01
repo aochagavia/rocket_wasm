@@ -10,9 +10,7 @@ mod geometry;
 mod models;
 mod util;
 
-use std::ffi::CString;
-use std::mem;
-use std::os::raw::{c_double, c_char, c_void};
+use std::os::raw::c_double;
 use std::sync::Mutex;
 
 use pcg_rand::Pcg32Basic;
@@ -40,6 +38,7 @@ fn new_game_data(width: f64, height: f64) -> GameData {
     }
 }
 
+// These functions are provided by the runtime
 extern "C" {
     fn clear_screen();
     fn draw_player(_: c_double, _: c_double, _: c_double);
@@ -77,21 +76,15 @@ pub unsafe extern "C" fn draw() {
     draw_score(data.state.score as f64);
 }
 
-
-
 #[no_mangle]
 pub extern "C" fn update(time: c_double) {
-    _update(time)
-}
-
-pub fn _update(time: f64) {
     let data: &mut GameData = &mut DATA.lock().unwrap();
     data.time_controller.update_seconds(time, &data.actions, &mut data.state);
     CollisionsController::handle_collisions(&mut data.state);
 }
 
-// FIXME: which type should we use for bool?
-// This one works, but it is not "the correct way to do it"
+// FIXME: it is technically incorrect to use bool from `extern` functions
+// (but it works!)
 
 #[no_mangle]
 pub extern "C" fn toggle_shoot(b: bool) {
