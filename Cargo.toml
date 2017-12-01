@@ -2,7 +2,6 @@
 name = "rocket"
 version = "1.0.0"
 authors = ["Adolfo Ochagavía <aochagavia92@gmail.com>"]
-build = "build.rs"
 
 [dependencies]
 clippy = { version = "0.0.118", optional = true }

@@ -5,18 +5,34 @@
   </head>
 
   <body>
-    <h2>Rocket MVP</h2>
-    <p>
-      Update the state by 0.1 seconds by clicking the button below.
-    </p>
-    <button id="button">Click me :)</button>
-    <p>Last state: <span id="number">none</span></p>
+    <h2>Rocket</h2>
+    <canvas id="canvas" width="1024" height="600"></canvas>
 
 <!-- bundle.js is fully stolen from hellorust.org -->
 <script src="bundle.js"></script>
 <script>
+  // Canvas related stuff
+  let canvas = document.getElementById('canvas');
+  var ctx = canvas.getContext("2d");
+
+  let env = {};
+  env.clear_screen = () => {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  env.draw_player = (x, y, angle) => {
+    ctx.fillStyle = "red";
+    ctx.fillRect(x, y, 20, 20);
+  }
+  env.draw_enemy = (x, y) => {
+    ctx.fillStyle = "yellow";
+    ctx.fillRect(x, y, 20, 20);
+  }
+
+  // Wasm related stuff
   window.Module = {};
 
+  // Terribly inefficient way of showing the dependencies
   fetch('program.wasm').then(response =>
     response.arrayBuffer()
     ).then(bytes =>
@@ -26,30 +42,54 @@
     imports.forEach(i => console.log(i));
     });
 
-  let imports = {
-    env: {
-        Math_atan: Math.atan,
-        sin: Math.sin,
-        cos: Math.cos
-    }
-  };
+  // The real loading and running of our wasm starts here
+  env.Math_atan = Math.atan;
+  env.sin = Math.sin;
+  env.cos = Math.cos;
 
-  fetchAndInstantiate("program.wasm", imports)
+  fetchAndInstantiate("program.wasm", { env })
     .then(mod => {
       Module.alloc = mod.exports.alloc;
       Module.dealloc = mod.exports.dealloc;
       Module.dealloc_str = mod.exports.dealloc_str;
       Module.update = mod.exports.update;
+      Module.draw = mod.exports.draw;
       Module.memory  = mod.exports.memory;
 
       let button = document.getElementById('button');
       let number = document.getElementById('number');
 
-      button.addEventListener("click", function(e) {
-        let outptr = Module.update(0.2);
-        number.innerText = copyCStr(Module, outptr);
-        Module.dealloc(outptr);
-      });
+      let start = null;
+      let prevTimestamp = null;
+      let drawAndUpdate = (timestamp) => {
+        if (!prevTimestamp) {
+          start = timestamp;
+          prevTimestamp = timestamp;
+
+          // Request next frame
+          requestAnimationFrame(drawAndUpdate);
+          return;
+        }
+
+        if (timestamp - start > 20000) {
+          return;
+        }
+
+        // Deal with time
+        let progress = (timestamp - prevTimestamp) / 1000;
+        prevTimestamp = timestamp;
+
+        // Update
+        Module.update(progress);
+
+        // Draw
+        Module.draw();
+
+        // Request next frame
+        requestAnimationFrame(drawAndUpdate);
+      };
+
+      drawAndUpdate();
     });
 </script>
   </body>

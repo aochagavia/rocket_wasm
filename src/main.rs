@@ -36,19 +36,38 @@ struct GameData {
     time_controller: TimeController<Pcg32Basic>
 }
 
-#[no_mangle]
-pub extern "C" fn update(time: c_double) -> *mut c_char {
-    CString::new(_update(time)).unwrap().into_raw()
+extern "C" {
+    fn clear_screen();
+    fn draw_player(_: c_double, _: c_double, _: c_double);
+    fn draw_enemy(_: c_double, _: c_double);
 }
 
-pub fn _update(time: f64) -> String {
+#[no_mangle]
+pub extern "C" fn draw() {
+    use geometry::{Advance, Position};
+    let data = &mut DATA.lock().unwrap();
+    unsafe {
+        clear_screen();
+        draw_player(data.state.world.player.x(), data.state.world.player.y(), data.state.world.player.direction());
+        for enemy in &data.state.world.enemies {
+            draw_enemy(enemy.x(), enemy.y());
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn update(time: c_double) {
+    _update(time)
+}
+
+pub fn _update(time: f64) {
     let data: &mut GameData = &mut DATA.lock().unwrap();
     data.time_controller.update_seconds(time, data.input_controller.actions(), &mut data.state);
     CollisionsController::handle_collisions(&mut data.state);
 
     // Stats
-    let player_pos = data.state.world.player.vector.position;
-    format!("Player: {}, {}\nEnemies: {}", player_pos.x, player_pos.y, data.state.world.enemies.len())
+    //let player_pos = data.state.world.player.vector.position;
+    //format!("Player: {}, {}\nEnemies: {}", player_pos.x, player_pos.y, data.state.world.enemies.len())
 }
 
 pub fn main() {}
