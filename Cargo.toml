@@ -3,6 +3,9 @@ name = "rocket"
 version = "1.0.0"
 authors = ["Adolfo Ochagavía <aochagavia92@gmail.com>"]
 
+[lib]
+crate-type = ["cdylib"]
+
 [dependencies]
 clippy = { version = "0.0.118", optional = true }
 itertools-num = "0.1.1"

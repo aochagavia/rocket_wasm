@@ -109,5 +109,3 @@ pub extern "C" fn toggle_turn_right(b: bool) {
     let data = &mut DATA.lock().unwrap();
     data.actions.rotate_right = b;
 }
-
-pub fn main() {}
