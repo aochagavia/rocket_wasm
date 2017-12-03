@@ -3,7 +3,9 @@ Rocket on WASM
 
 An adapted version of the [Rocket](https://github.com/aochagavia/rocket) game, running on WASM!
 
-[Play now!](https://aochagavia.github.io/rocket_wasm)
+[Play now](https://aochagavia.github.io/rocket_wasm) or
+[read the blog post](https://aochagavia.github.io/blog/rocket---a-rust-game-running-on-wasm/)
+about the development of this WASM version.
 
 ## Screenshot
 
