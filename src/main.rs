@@ -109,3 +109,8 @@ pub extern "C" fn toggle_turn_right(b: bool) {
     let data = &mut DATA.lock().unwrap();
     data.actions.rotate_right = b;
 }
+
+fn main()
+{
+    // Don't run anything before JS calls us.
+}

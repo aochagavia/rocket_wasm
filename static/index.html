@@ -121,7 +121,7 @@
   }
 
   // Fetch and instantiate our wasm module
-  fetch("program.wasm").then(response =>
+  fetch("rocket.wasm").then(response =>
     response.arrayBuffer()
   ).then(bytes =>
     WebAssembly.instantiate(bytes, { env: imports() })
