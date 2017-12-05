@@ -15,7 +15,6 @@
   </head>
 
   <body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.6.7/nipplejs.min.js"></script>
     <canvas id="canvas" style='position:absolute; left:0px; top:0px; width: 100%'></canvas>
 
 <script>
@@ -73,14 +72,6 @@
 
   // We create this here because it will be used from within `imports`
   let canvas = document.getElementById('canvas');
-
-  // Set up joystick
-  nipplejs.create({
-      zone: canvas,
-      mode: 'static',
-      position: {left: '50%', top: '50%'},
-      color: 'red'
-  });
 
   // Returns an object containing functions that will be linked to our wasm model
   // This means that they can be called from Rust

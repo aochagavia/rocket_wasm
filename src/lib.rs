@@ -10,7 +10,7 @@ mod geometry;
 mod models;
 mod util;
 
-use std::os::raw::c_double;
+use std::os::raw::{c_double, c_int};
 use std::sync::Mutex;
 
 use pcg_rand::Pcg32Basic;
@@ -83,29 +83,30 @@ pub extern "C" fn update(time: c_double) {
     CollisionsController::handle_collisions(&mut data.state);
 }
 
-// FIXME: it is technically incorrect to use bool from `extern` functions
-// (but it works!)
-
-#[no_mangle]
-pub extern "C" fn toggle_shoot(b: bool) {
-    let data = &mut DATA.lock().unwrap();
-    data.actions.shoot = b;
+fn int_to_bool(i: c_int) -> bool {
+    i != 0
 }
 
 #[no_mangle]
-pub extern "C" fn toggle_boost(b: bool) {
+pub extern "C" fn toggle_shoot(b: c_int) {
     let data = &mut DATA.lock().unwrap();
-    data.actions.boost = b;
+    data.actions.shoot = int_to_bool(b);
 }
 
 #[no_mangle]
-pub extern "C" fn toggle_turn_left(b: bool) {
+pub extern "C" fn toggle_boost(b: c_int) {
     let data = &mut DATA.lock().unwrap();
-    data.actions.rotate_left = b;
+    data.actions.boost = int_to_bool(b);
 }
 
 #[no_mangle]
-pub extern "C" fn toggle_turn_right(b: bool) {
+pub extern "C" fn toggle_turn_left(b: c_int) {
     let data = &mut DATA.lock().unwrap();
-    data.actions.rotate_right = b;
+    data.actions.rotate_left = int_to_bool(b);
+}
+
+#[no_mangle]
+pub extern "C" fn toggle_turn_right(b: c_int) {
+    let data = &mut DATA.lock().unwrap();
+    data.actions.rotate_right = int_to_bool(b);
 }
