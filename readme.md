@@ -36,5 +36,10 @@ cargo build --release --target wasm32-unknown-unknown
 python post_build.py
 ```
 
-The generated wasm will be copied to the `html` directory and `wasm-gc`ed. Try opening
-`index.html` on your browser to check whether it works.
+The generated wasm will be copied to the `html` directory and `wasm-gc`ed.
+
+```
+python -m SimpleHTTPServer
+```
+
+Try opening http://localhost:8000/ on your browser to check whether it works.
