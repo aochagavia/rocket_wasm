@@ -121,7 +121,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "rand"
 version = "0.3.18"
-source = "git+https://github.com/aochagavia/rand.git?branch=wasm#db1e4c3103d509becd28240fdfc1970519673d81"
+source = "git+https://github.com/aochagavia/rand.git?branch=wasm#cbd99e5e8822018f028464927dac13beb4007bf6"
 dependencies = [
  "fuchsia-zircon 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.34 (registry+https://github.com/rust-lang/crates.io-index)",
