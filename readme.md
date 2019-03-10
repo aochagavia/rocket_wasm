@@ -23,7 +23,7 @@ Keyboard                | Action
 <kbd>&rightarrow;</kbd> | Rotate right
 <kbd>Space</kbd>        | Shoot
 
-### Compiling and running
+## Compiling and running
 
 Follow the steps on the [hellorust website](https://www.hellorust.com/setup/wasm-target/)
 in order to set up everything. Besides the `wasm32-unknown-unknown` target, the `post_build.py`
@@ -43,3 +43,7 @@ python -m SimpleHTTPServer
 ```
 
 Try opening http://localhost:8000/ on your browser to check whether it works.
+
+## Related projects
+
+* [Running Rocket in a Python environment through WebAssembly](https://almarklein.org/python_and_webassembly.html)
